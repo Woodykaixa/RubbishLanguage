@@ -9,7 +9,6 @@ test('parse with nullable options', () => {
   const parser = new CommandLineParser<{ test: number }>({
     test: {
       typename: 'number',
-      main: 'test',
       nullable: true,
       transformer: input => parseInt(input, 10),
     },
@@ -24,14 +23,12 @@ test('parse with non-nullable options', () => {
   const parser = new CommandLineParser<{ test1: number; test2: number }>({
     test1: {
       typename: 'number',
-      main: 'test1',
       nullable: false,
       default: 114514,
       transformer: input => parseInt(input, 10),
     },
     test2: {
       typename: 'number',
-      main: 'test2',
       nullable: false,
       default: 1919810,
       transformer: input => parseInt(input, 10),
@@ -54,13 +51,11 @@ test('parse with unknown options', () => {
   const parser = new CommandLineParser<{ test1: number; test2: string }>({
     test1: {
       typename: 'number',
-      main: 'test1',
       nullable: true,
       transformer: input => parseInt(input, 10),
     },
     test2: {
       typename: 'string',
-      main: 'test2',
       nullable: false,
       default: '',
       transformer: null,
@@ -69,5 +64,46 @@ test('parse with unknown options', () => {
   const result = parser.parse(['no-dash', '-dash', '--dash2', '--test2', '😂中文']);
   expect(result).toStrictEqual({
     test2: '😂中文',
+  });
+});
+
+test('parse all types', () => {
+  const parser = new CommandLineParser<{
+    number: number;
+    string: string;
+    object: { a: number; b: boolean };
+    boolean: boolean;
+  }>({
+    number: {
+      typename: 'number',
+      nullable: false,
+      default: 0,
+      transformer: input => parseInt(input, 10),
+    },
+    string: {
+      typename: 'string',
+      nullable: false,
+      default: '',
+      transformer: null,
+    },
+    boolean: {
+      typename: 'boolean',
+    },
+    object: {
+      typename: 'object',
+      nullable: false,
+      default: {
+        a: 1,
+        b: false,
+      },
+      transformer: JSON.parse,
+    },
+  });
+  const result = parser.parse(['--string=123', '--number=123', '--boolean', '--object', '{"a":123,"b":false}']);
+  expect(result).toStrictEqual({
+    string: '123',
+    number: 123,
+    boolean: true,
+    object: { a: 123, b: false },
   });
 });

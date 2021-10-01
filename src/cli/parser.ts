@@ -1,5 +1,5 @@
 import { CommandLineOption } from '@/cli';
-import type { Nullable, Ref } from '@/common/type';
+import type { Nullable, PrimitiveTypeName, Ref } from '@/common/type';
 import { ref } from '@/common/helper';
 import { CliError } from '@/common/error';
 
@@ -61,22 +61,13 @@ export class CommandLineParser<TParserOutput extends Record<string, any>> {
         if (!current.startsWith(option)) {
           continue;
         }
-        const value = this.getOptionValue(args, i);
+        const optionItem = this._options[optionName];
+        const value = this.getOptionValue(args, i, optionItem.typename);
         if (!value) {
           throw new CliError('Argument parsing error', `Expect value for option '${option}'`);
         }
-        const cliOption = this._options[optionName];
-        let transformer = cliOption.transformer;
-        if (!transformer) {
-          if (cliOption.typename !== 'string') {
-            throw new CliError(
-              'Argument transformation error',
-              `Expect transformer for option '${this._options[optionName].main}'`
-            );
-          }
-          transformer = (input: string) => input as any;
-        }
-        result[optionName] = transformer(value);
+        const optionValue = this.transformOptionValue(value, optionName, optionItem);
+        result[optionName] = optionValue;
         this._unparsedList.delete(optionName);
       }
       i.value++;
@@ -84,6 +75,10 @@ export class CommandLineParser<TParserOutput extends Record<string, any>> {
 
     for (const option of this._unparsedList) {
       const cliOption = this._options[option];
+      if (cliOption.typename === 'boolean') {
+        result[option] = false as any;
+        continue;
+      }
       if (cliOption.nullable) {
         continue;
       }
@@ -93,7 +88,10 @@ export class CommandLineParser<TParserOutput extends Record<string, any>> {
     return result;
   }
 
-  private getOptionValue(args: string[], index: Ref<number>): Nullable<string> {
+  private getOptionValue(args: string[], index: Ref<number>, typename: PrimitiveTypeName<any>): Nullable<string> {
+    if (typename === 'boolean') {
+      return '.'; // boolean type doesn't need a value. Just return an empty string to avoid error.
+    }
     const current = args[index.value];
     if (current.includes('=')) {
       const value = current.split('=')[1];
@@ -108,5 +106,20 @@ export class CommandLineParser<TParserOutput extends Record<string, any>> {
       return null;
     }
     return next;
+  }
+
+  private transformOptionValue(
+    inputValue: string,
+    optionName: keyof TParserOutput,
+    option: CommandLineOption<TParserOutput>[typeof optionName]
+  ): TParserOutput[typeof optionName] {
+    if (option.typename === 'boolean') {
+      return true as any;
+    }
+    if (!option.transformer && option.typename !== 'string') {
+      throw new CliError('Argument transformation error', `Cannot transform option '${optionName}': no transformer`);
+    }
+    const transformer = option.transformer ?? (input => input as TParserOutput[typeof optionName]);
+    return transformer(inputValue);
   }
 }
