@@ -88,6 +88,29 @@ export class CommandLineParser<TParserOutput extends Record<string, any>> {
     return result;
   }
 
+  getDescriptions(): string {
+    const descriptions = [] as Array<{ name: string; description: string }>;
+
+    for (const optionName in this._options) {
+      const optionItem = this._options[optionName];
+      const desc = {
+        name: optionName,
+        description: `--${optionName}`,
+      } as typeof descriptions[number];
+      if (optionItem.alias) {
+        desc.description = optionItem.alias.reduce((desc, alias) => `${desc} -${alias}`, desc.description);
+      }
+      desc.description += ` ${optionItem.description}`;
+      descriptions.push(desc);
+    }
+
+    descriptions.sort((a, b) => {
+      return a.name < b.name ? -1 : 1;
+    });
+
+    return descriptions.map(desc => desc.description).join('\n');
+  }
+
   private getOptionValue(args: string[], index: Ref<number>, typename: PrimitiveTypeName<any>): Nullable<string> {
     if (typename === 'boolean') {
       return '.'; // boolean type doesn't need a value. Just return an empty string to avoid error.

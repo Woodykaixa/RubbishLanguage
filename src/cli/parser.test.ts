@@ -9,6 +9,7 @@ test('parse with nullable options', () => {
   const parser = new CommandLineParser<{ test: number }>({
     test: {
       typename: 'number',
+      description: '',
       nullable: true,
       transformer: input => parseInt(input, 10),
     },
@@ -22,6 +23,7 @@ test('parse with nullable options', () => {
 test('parse with non-nullable options', () => {
   const parser = new CommandLineParser<{ test1: number; test2: number }>({
     test1: {
+      description: '',
       typename: 'number',
       nullable: false,
       default: 114514,
@@ -31,6 +33,7 @@ test('parse with non-nullable options', () => {
       typename: 'number',
       nullable: false,
       default: 1919810,
+      description: '',
       transformer: input => parseInt(input, 10),
     },
   });
@@ -53,8 +56,10 @@ test('parse with unknown options', () => {
       typename: 'number',
       nullable: true,
       transformer: input => parseInt(input, 10),
+      description: '',
     },
     test2: {
+      description: '',
       typename: 'string',
       nullable: false,
       default: '',
@@ -78,18 +83,22 @@ test('parse all types', () => {
       typename: 'number',
       nullable: false,
       default: 0,
+      description: '',
       transformer: input => parseInt(input, 10),
     },
     string: {
       typename: 'string',
       nullable: false,
       default: '',
+      description: '',
       transformer: null,
     },
     boolean: {
+      description: '',
       typename: 'boolean',
     },
     object: {
+      description: '',
       typename: 'object',
       nullable: false,
       default: {
@@ -106,4 +115,34 @@ test('parse all types', () => {
     boolean: true,
     object: { a: 123, b: false },
   });
+});
+
+test('parse description', () => {
+  const parser = new CommandLineParser<{ test1: number; test2: string; tez1: boolean }>({
+    test1: {
+      typename: 'number',
+      nullable: true,
+      transformer: input => parseInt(input, 10),
+      description: 'test property 1',
+      alias: ['t1', 't'],
+    },
+    test2: {
+      description: 'test property 2',
+      typename: 'string',
+      nullable: false,
+      default: '',
+      transformer: null,
+    },
+    tez1: {
+      description: 'test property tez',
+      alias: ['tz'],
+      typename: 'boolean',
+    },
+  });
+  const result = parser.getDescriptions();
+  expect(result).toStrictEqual(
+    `--test1 -t1 -t test property 1
+--test2 test property 2
+--tez1 -tz test property tez`
+  );
 });

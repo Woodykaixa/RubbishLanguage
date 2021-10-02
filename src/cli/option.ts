@@ -11,6 +11,9 @@ interface CommandLineOptionItemBase<TValue> {
 
   /** The abbreviations of this option. Starts with 1 dash (-) */
   alias?: string[];
+
+  /** Text to describe this option */
+  description: string;
 }
 
 /**
