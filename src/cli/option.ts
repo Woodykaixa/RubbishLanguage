@@ -1,4 +1,4 @@
-import type { Nullable, KeyType, PrimitiveTypeName } from '@/common/type';
+import type { Nullable, PrimitiveTypeName } from '@/common/type';
 
 type CommandLineOptionItemTransformer<TValue extends any> = (input: string) => TValue;
 

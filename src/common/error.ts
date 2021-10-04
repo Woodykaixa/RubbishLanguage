@@ -9,3 +9,10 @@ export class CliError extends Error {
     this.name = 'CLI error';
   }
 }
+
+export class ProjectConfigError extends Error {
+  constructor(message: string) {
+    super();
+    this.message = message;
+  }
+}

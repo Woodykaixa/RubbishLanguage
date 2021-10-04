@@ -27,3 +27,8 @@ export type PrimitiveTypeName<T> = T extends string
   : T extends object
   ? 'object'
   : never;
+
+/** Make properties in T optional. If a property contains other properties, make them optional too */
+export type DeepPartial<T> = {
+  [key in keyof T]?: key extends object ? DeepPartial<T[key]> : T[key];
+};
