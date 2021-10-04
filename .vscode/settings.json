@@ -41,7 +41,7 @@
     "cSpell.diagnosticLevel": "Hint",
     "editor.codeActionsOnSave": {
         "source.fixAll": true,
-        "source.organizeImports": false
+        "source.organizeImports": true
     },
     "htmlhint.enable": true,
     "[javascript]": {
